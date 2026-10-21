@@ -1,5 +1,8 @@
 package org.example.pokedexservice.controller;
 
+import org.example.pokedexservice.repository.Repository;
+import org.example.pokedexservice.service.IdService;
+import org.example.pokedexservice.service.PokemonService;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
@@ -26,9 +29,15 @@ class ControllerTest {
 
     @Autowired
     private MockMvc mockMvc;
+    @Autowired
+    private Repository repo;
+    @Autowired
+    private IdService idService;
 
     private final RestClient.Builder builder = RestClient.builder();
     private final MockRestServiceServer mockServer = MockRestServiceServer.bindTo(builder).build();
+    //private final PokemonService pokemonService = new PokemonService(builder, repo, idService);
+
 
 
     @Test
