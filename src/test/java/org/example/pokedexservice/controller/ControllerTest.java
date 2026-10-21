@@ -1,5 +1,7 @@
 package org.example.pokedexservice.controller;
 
+import org.example.pokedexservice.dto.PokemonDto;
+import org.example.pokedexservice.repository.Repository;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
@@ -14,6 +16,8 @@ import org.springframework.test.web.servlet.request.MockMvcRequestBuilders;
 import org.springframework.test.web.servlet.result.MockMvcResultMatchers;
 import org.springframework.web.client.RestClient;
 
+import java.util.List;
+
 import static org.springframework.test.web.client.match.MockRestRequestMatchers.method;
 import static org.springframework.test.web.client.match.MockRestRequestMatchers.requestTo;
 import static org.springframework.test.web.client.response.MockRestResponseCreators.withStatus;
@@ -27,8 +31,12 @@ class ControllerTest {
     @Autowired
     private MockMvc mockMvc;
 
+    @Autowired
+    private Repository repo;
+
     private final RestClient.Builder builder = RestClient.builder();
     private final MockRestServiceServer mockServer = MockRestServiceServer.bindTo(builder).build();
+
 
 
     @Test
@@ -212,4 +220,46 @@ class ControllerTest {
                 .andExpect(MockMvcResultMatchers.jsonPath("timestamp").isNotEmpty());
     }
 
+    @Test
+    void getAllFavoritePokemons_shouldReturnList_whenOneExist() throws Exception {
+        //GIVEN
+        PokemonDto expectedPokemonDto = PokemonDto.builder()
+                .id("123")
+                .nickname("someNikname")
+                .pokemonId("35")
+                .pokemonName("clefairy")
+                .pictureUrl("https://example.com/clefairy.png")
+                .weight(75)
+                .height(6)
+                .types(List.of("fairy"))
+                .build();
+        repo.saveAll(List.of(expectedPokemonDto));
+        //WHEN
+        mockMvc.perform(MockMvcRequestBuilders.get("/api/collection"))
+                .andExpect(MockMvcResultMatchers.status().isOk())
+                .andExpect(MockMvcResultMatchers.content().json("""
+                          [{
+                            "id": "123",
+                            "pokemonId": "35",
+                            "nickname": "someNikname",
+                            "pokemonName": "clefairy",
+                            "pictureUrl": "https://example.com/clefairy.png",
+                            "height": 6,
+                            "weight": 75,
+                            "types": [
+                                "fairy"
+                            ]
+                        }]
+                        """));
+    }
+
+    @Test
+    void getAllFavoritePokemons_shouldReturnEmptyList_whenNoneExist() throws Exception {
+        //WHEN
+        mockMvc.perform(MockMvcRequestBuilders.get("/api/collection"))
+                .andExpect(MockMvcResultMatchers.status().isOk())
+                .andExpect(MockMvcResultMatchers.content().json("""
+                          []
+                        """));
+    }
 }
