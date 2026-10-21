@@ -11,6 +11,7 @@ import org.springframework.http.HttpMethod;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.test.web.client.MockRestServiceServer;
+import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.client.RestClient;
 
 import java.util.Collections;
@@ -252,4 +253,41 @@ class PokemonServiceTest {
             verify(mockRepo, times(0)).deleteById("123");
         }
     }
+
+    @Test
+    void updateFavoritePokemonById_shouldBeReturnedOne_whenOneExists() {
+        //GIVEN
+        FavoriteDto inputFavoriteDto = new FavoriteDto(null, "New nickname");
+        PokemonDto outdatedPokemon = PokemonDto.builder()
+                .id("123")
+                .nickname("Old nickname")
+                .pokemonId("35")
+                .pokemonName("clefairy")
+                .pictureUrl("https://example.com/clefairy.png")
+                .weight(75)
+                .height(6)
+                .types(List.of("fairy"))
+                .build();
+        PokemonDto expectedPokemon = PokemonDto.builder()
+                .id("123")
+                .nickname("New nickname")
+                .pokemonId("35")
+                .pokemonName("clefairy")
+                .pictureUrl("https://example.com/clefairy.png")
+                .weight(75)
+                .height(6)
+                .types(List.of("fairy"))
+                .build();
+
+        when(mockRepo.findById("123")).thenReturn(Optional.of(outdatedPokemon));
+        when(mockRepo.save(expectedPokemon)).thenReturn(expectedPokemon);
+
+        //WHEN
+        PokemonDto actualPokemon = pokemonService.updateFavoritePokemon("123", inputFavoriteDto);
+
+        //THEN
+        assertEquals(expectedPokemon, actualPokemon);
+        verify(mockRepo, times(1)).save(actualPokemon);
+    }
+
 }

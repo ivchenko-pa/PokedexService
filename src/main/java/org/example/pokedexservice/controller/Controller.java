@@ -45,4 +45,8 @@ public class Controller {
         return pokemonService.deleteFavoritePokemon(id);
     }
 
+    @PutMapping("collection/{id}")
+    public PokemonDto updateFavoritePokemon(@PathVariable String id, @RequestBody FavoriteDto favoriteDto){
+        return pokemonService.updateFavoritePokemon(id, favoriteDto);
+    }
 }

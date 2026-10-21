@@ -82,4 +82,9 @@ public class PokemonService {
         return true;
     }
 
+    public PokemonDto updateFavoritePokemon(String id, FavoriteDto favoriteDto){
+        PokemonDto pokemonDto = getFavoritePokemon(id).withNickname(favoriteDto.nickname());
+        return repo.save(pokemonDto);
+    }
+
 }
