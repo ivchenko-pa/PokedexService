@@ -1,5 +1,6 @@
 package org.example.pokedexservice.controller;
 
+import jakarta.validation.constraints.AssertTrue;
 import org.example.pokedexservice.dto.PokemonDto;
 import org.example.pokedexservice.repository.Repository;
 import org.junit.jupiter.api.Test;
@@ -17,7 +18,9 @@ import org.springframework.test.web.servlet.result.MockMvcResultMatchers;
 import org.springframework.web.client.RestClient;
 
 import java.util.List;
+import java.util.Optional;
 
+import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.springframework.test.web.client.match.MockRestRequestMatchers.method;
 import static org.springframework.test.web.client.match.MockRestRequestMatchers.requestTo;
 import static org.springframework.test.web.client.response.MockRestResponseCreators.withStatus;
@@ -232,7 +235,7 @@ class ControllerTest {
                 .height(6)
                 .types(List.of("fairy"))
                 .build();
-        repo.saveAll(List.of(expectedPokemonDto));
+        repo.save(expectedPokemonDto);
         //WHEN
         mockMvc.perform(MockMvcRequestBuilders.get("/api/collection"))
                 .andExpect(MockMvcResultMatchers.status().isOk())
@@ -321,10 +324,57 @@ class ControllerTest {
                 .types(List.of("fairy"))
                 .build();
 
-        repo.saveAll(List.of(expectedPokemonDtoOne));
+        repo.save(expectedPokemonDtoOne);
 
         //WHEN
         mockMvc.perform(MockMvcRequestBuilders.get("/api/collection/333"))
+                .andExpect(MockMvcResultMatchers.status().isBadRequest())
+                .andExpect(MockMvcResultMatchers.content().string("Favorite Pokemon with id: 333 not found!"));
+    }
+
+
+    @Test
+    void deleteFavoritePokemon_shouldReturnTrue_whenOneExist() throws Exception {
+        //GIVEN
+        PokemonDto expectedPokemonDtoOne = PokemonDto.builder()
+                .id("123")
+                .nickname("someNikname")
+                .pokemonId("35")
+                .pokemonName("clefairy")
+                .pictureUrl("https://example.com/clefairy.png")
+                .weight(75)
+                .height(6)
+                .types(List.of("fairy"))
+                .build();
+
+        repo.save(expectedPokemonDtoOne);
+
+        //WHEN
+        mockMvc.perform(MockMvcRequestBuilders.delete("/api/collection/123"))
+        //THEN
+                .andExpect(MockMvcResultMatchers.status().isOk())
+                .andExpect(MockMvcResultMatchers.content().string("true"));
+        assertEquals(Optional.empty(), repo.findById("123"));
+    }
+
+    @Test
+    void deleteFavoritePokemon_shouldReturnException_whenNotExist() throws Exception {
+        //GIVEN
+        PokemonDto expectedPokemonDtoOne = PokemonDto.builder()
+                .id("123")
+                .nickname("someNikname")
+                .pokemonId("35")
+                .pokemonName("clefairy")
+                .pictureUrl("https://example.com/clefairy.png")
+                .weight(75)
+                .height(6)
+                .types(List.of("fairy"))
+                .build();
+
+        repo.save(expectedPokemonDtoOne);
+
+        //WHEN
+        mockMvc.perform(MockMvcRequestBuilders.delete("/api/collection/333"))
                 .andExpect(MockMvcResultMatchers.status().isBadRequest())
                 .andExpect(MockMvcResultMatchers.content().string("Favorite Pokemon with id: 333 not found!"));
     }
