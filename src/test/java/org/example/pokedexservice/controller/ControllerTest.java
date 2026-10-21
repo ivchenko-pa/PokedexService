@@ -36,7 +36,7 @@ class ControllerTest {
 
     private final RestClient.Builder builder = RestClient.builder();
     private final MockRestServiceServer mockServer = MockRestServiceServer.bindTo(builder).build();
-    //private final PokemonService pokemonService = new PokemonService(builder, repo, idService);
+    private final PokemonService pokemonService = new PokemonService(builder, repo, idService);
 
 
 
