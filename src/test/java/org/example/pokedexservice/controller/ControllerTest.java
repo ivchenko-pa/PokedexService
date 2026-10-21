@@ -1,8 +1,5 @@
 package org.example.pokedexservice.controller;
 
-import org.example.pokedexservice.repository.Repository;
-import org.example.pokedexservice.service.IdService;
-import org.example.pokedexservice.service.PokemonService;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
@@ -29,19 +26,13 @@ class ControllerTest {
 
     @Autowired
     private MockMvc mockMvc;
-    @Autowired
-    private Repository repo;
-    @Autowired
-    private IdService idService;
 
     private final RestClient.Builder builder = RestClient.builder();
     private final MockRestServiceServer mockServer = MockRestServiceServer.bindTo(builder).build();
-    private final PokemonService pokemonService = new PokemonService(builder, repo, idService);
-
 
 
     @Test
-    void getPokemon_shouldRetournPokemon_whenValidRequested() throws Exception {
+    void getPokemon_shouldReturnPokemon_whenValidRequested() throws Exception {
 
         //GIVEN
         mockServer.expect(requestTo("https://pokeapi.co/api/v2/pokemon/clefairy"))
@@ -87,7 +78,6 @@ class ControllerTest {
                             ]
                         }
                         """));
-
     }
 
     @Test
@@ -103,4 +93,123 @@ class ControllerTest {
                 .andExpect(MockMvcResultMatchers.status().isBadRequest())
                 .andExpect(MockMvcResultMatchers.content().string("Pokemon with name: SomeNotValidPokemon not found!"));
     }
+
+    @Test
+    void addFavorite_shouldReturnPokemon_whenValidRequested() throws Exception {
+        //GIVEN
+        mockServer.expect(requestTo("https://pokeapi.co/api/v2/pokemon/clefairy"))
+                .andExpect(method(HttpMethod.GET))
+                .andRespond(withSuccess("""
+                         {
+                                  "id": 35,
+                                  "name": "clefairy",
+                                  "height": 6,
+                                  "weight": 75,
+                                  "types": [
+                                    {
+                                      "type": {
+                                        "name": "fairy"
+                                      }
+                                    }
+                                  ],
+                                  "sprites": {
+                                    "other": {
+                                      "official-artwork": {
+                                        "front_default": "https://example.com/clefairy.png"
+                                      }
+                                    }
+                                  }
+                                }
+                        """, MediaType.APPLICATION_JSON));
+        //WHEN
+        mockMvc.perform(MockMvcRequestBuilders.post("/api/collection")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content("""
+                                {
+                                    "pokemonName": "clefairy",
+                                    "nickname": "My Super Starter"
+                                }
+                                """))
+                //THEN
+                .andExpect(MockMvcResultMatchers.status().isOk())
+                .andExpect(MockMvcResultMatchers.content().json("""
+                        {
+                            "pokemonId": "35",
+                            "nickname": "My Super Starter",
+                            "pokemonName": "clefairy",
+                            "pictureUrl": "https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/other/official-artwork/35.png",
+                            "height": 6,
+                            "weight": 75,
+                            "types": [
+                                "fairy"
+                            ]
+                        }
+                        """))
+                .andExpect(MockMvcResultMatchers.jsonPath("id").isNotEmpty());
+    }
+
+    @Test
+    void addFavorite_shouldReturnBadRequestWithDetails_whenEmptyPokemonName() throws Exception {
+        //WHEN
+        mockMvc.perform(MockMvcRequestBuilders.post("/api/collection")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content("""
+                                {
+                                    "pokemonName": "",
+                                    "nickname": "My Super Starter"
+                                }
+                                """))
+                //THEN
+                .andExpect(MockMvcResultMatchers.status().isBadRequest())
+                .andExpect(MockMvcResultMatchers.content().json("""
+                        {
+                            "pokemonName": "Should not be empty"
+                        }
+                        """))
+                .andExpect(MockMvcResultMatchers.jsonPath("timestamp").isNotEmpty());
+    }
+
+    @Test
+    void addFavorite_shouldReturnBadRequestWithDetails_whenEmptyNickName() throws Exception {
+        //WHEN
+        mockMvc.perform(MockMvcRequestBuilders.post("/api/collection")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content("""
+                                {
+                                    "pokemonName": "kdkdkd",
+                                    "nickname": ""
+                                }
+                                """))
+                //THEN
+                .andExpect(MockMvcResultMatchers.status().isBadRequest())
+                .andExpect(MockMvcResultMatchers.content().json("""
+                        {
+                            "nickname": "Should be at least 2 characters long"
+                        }
+                        """))
+                .andExpect(MockMvcResultMatchers.jsonPath("timestamp").isNotEmpty());
+    }
+
+    @Test
+    void addFavorite_shouldReturnBadRequestWithDetails_whenEmptyPokemonNameAndOneCharacterNickName() throws Exception {
+        //WHEN
+        mockMvc.perform(MockMvcRequestBuilders.post("/api/collection")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content("""
+                                {
+                                    "pokemonName": "",
+                                    "nickname": "A"
+                                }
+                                """))
+                //THEN
+                .andExpect(MockMvcResultMatchers.status().isBadRequest())
+                .andExpect(MockMvcResultMatchers.content().json("""
+                            {
+                            "pokemonName": "Should not be empty",
+                            "nickname": "Should be at least 2 characters long"
+                            }
+                        """))
+                .andExpect(MockMvcResultMatchers.jsonPath("timestamp").isNotEmpty());
+    }
+
 }
