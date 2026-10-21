@@ -1,20 +1,15 @@
 package org.example.pokedexservice.service;
 
-import lombok.AllArgsConstructor;
+
 import org.example.pokedexservice.dto.FavoriteDto;
 import org.example.pokedexservice.dto.PokemonDto;
 import org.example.pokedexservice.exceptionHandler.PokemonNotFoundException;
 import org.example.pokedexservice.repository.Repository;
 import org.junit.jupiter.api.Test;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.restclient.test.autoconfigure.AutoConfigureMockRestServiceServer;
-import org.springframework.boot.restclient.test.autoconfigure.AutoConfigureRestClient;
-import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.http.HttpMethod;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.test.web.client.MockRestServiceServer;
-import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.web.client.RestClient;
 
 import java.util.List;

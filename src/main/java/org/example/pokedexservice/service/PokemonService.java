@@ -6,7 +6,6 @@ import org.example.pokedexservice.exceptionHandler.PokemonNotFoundException;
 import org.example.pokedexservice.model.Pokemon;
 import org.example.pokedexservice.model.PokemonType;
 import org.example.pokedexservice.repository.Repository;
-import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 import org.springframework.web.client.HttpClientErrorException;
 import org.springframework.web.client.RestClient;
