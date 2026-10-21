@@ -2,6 +2,7 @@ package org.example.pokedexservice.service;
 
 import org.example.pokedexservice.dto.FavoriteDto;
 import org.example.pokedexservice.dto.PokemonDto;
+import org.example.pokedexservice.exceptionHandler.CollectionEntryNotFoundException;
 import org.example.pokedexservice.exceptionHandler.PokemonNotFoundException;
 import org.example.pokedexservice.model.Pokemon;
 import org.example.pokedexservice.model.PokemonType;
@@ -60,6 +61,25 @@ public class PokemonService {
                 .withNickname(favoriteDto.nickname());
         repo.save(pokemonDto);
         return pokemonDto;
+    }
+
+    public List<PokemonDto> getAllFavoritePokemons(){
+        return repo.findAll();
+    }
+
+    public PokemonDto getFavoritePokemon(String id) {
+        PokemonDto pokemonDto = repo.findById(id)
+                .orElseThrow(() ->new CollectionEntryNotFoundException(String.format("Favorite Pokemon with id: %s not found!", id)));
+
+        return pokemonDto;
+    }
+
+    public boolean deleteFavoritePokemon(String id) {
+        if (!repo.existsById(id)){
+            throw new CollectionEntryNotFoundException(String.format("Favorite Pokemon with id: %s not found!", id));
+        }
+        repo.deleteById(id);
+        return true;
     }
 
 }

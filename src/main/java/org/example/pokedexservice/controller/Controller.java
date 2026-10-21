@@ -11,6 +11,7 @@ import org.springframework.web.bind.annotation.*;
 import org.springframework.web.client.HttpClientErrorException;
 
 import java.io.IOException;
+import java.util.List;
 
 @RestController
 @RequestMapping("/api")
@@ -29,5 +30,19 @@ public class Controller {
         return pokemonService.addFavorite(favoriteDto);
     }
 
+    @GetMapping("/collection")
+    public List<PokemonDto> getAllFavoritePokemons(){
+        return pokemonService.getAllFavoritePokemons();
+    }
+
+    @GetMapping("/collection/{id}")
+    public PokemonDto getFavoritePokemon(@PathVariable String id){
+        return pokemonService.getFavoritePokemon(id);
+    }
+
+    @DeleteMapping("/collection/{id}")
+    public boolean deleteFavoritePokemon(@PathVariable String id){
+        return pokemonService.deleteFavoritePokemon(id);
+    }
 
 }

@@ -3,6 +3,7 @@ package org.example.pokedexservice.service;
 
 import org.example.pokedexservice.dto.FavoriteDto;
 import org.example.pokedexservice.dto.PokemonDto;
+import org.example.pokedexservice.exceptionHandler.CollectionEntryNotFoundException;
 import org.example.pokedexservice.exceptionHandler.PokemonNotFoundException;
 import org.example.pokedexservice.repository.Repository;
 import org.junit.jupiter.api.Test;
@@ -12,7 +13,9 @@ import org.springframework.http.MediaType;
 import org.springframework.test.web.client.MockRestServiceServer;
 import org.springframework.web.client.RestClient;
 
+import java.util.Collections;
 import java.util.List;
+import java.util.Optional;
 
 import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.Mockito.*;
@@ -84,9 +87,9 @@ class PokemonServiceTest {
         //WHEN
         try {
             pokemonService.getPokemon("someName");
-        //THEN
+            //THEN
             fail("Expected Exception not thrown, even though pokemon with name: someName, that does not exist.");
-        }catch(PokemonNotFoundException e){
+        } catch (PokemonNotFoundException e) {
             var expectedMessage = "Pokemon with name: someName not found!";
             assertEquals(expectedMessage, e.getMessage());
         }
@@ -139,5 +142,114 @@ class PokemonServiceTest {
 
         assertEquals(expectedPokemonDto, actualPokemonDto);
         verify(mockRepo, times(1)).save(actualPokemonDto);
+    }
+
+    @Test
+    void getAllFavoritePokemons_shouldBeListWithOne_whenOneExist() {
+        //GIVEN
+        PokemonDto expectedPokemonDto = PokemonDto.builder()
+                .id("123")
+                .nickname("My favorite")
+                .pokemonId("35")
+                .pokemonName("clefairy")
+                .pictureUrl("https://example.com/clefairy.png")
+                .weight(75)
+                .height(6)
+                .types(List.of("fairy"))
+                .build();
+
+        List<PokemonDto> expectedList = List.of(expectedPokemonDto);
+
+        //WHEN
+        when(mockRepo.findAll()).thenReturn(List.of(expectedPokemonDto));
+        List<PokemonDto> actualList = pokemonService.getAllFavoritePokemons();
+
+        //THEN
+        assertEquals(expectedList, actualList);
+        verify(mockRepo, times(1)).findAll();
+    }
+
+    @Test
+    void getAllFavoritePokemons_shouldBeEmptyList_whenNothingInDatabase() {
+        //GIVEN
+        List<PokemonDto> expectedList = Collections.emptyList();
+
+        //WHEN
+        when(mockRepo.findAll()).thenReturn(Collections.emptyList());
+        List<PokemonDto> actualList = pokemonService.getAllFavoritePokemons();
+
+        //THEN
+        assertEquals(expectedList, actualList);
+        verify(mockRepo, times(1)).findAll();
+    }
+
+    @Test
+    void getFavoritePokemon_shouldBeOnePokemon_WhenOneExist() {
+        //GIVEN
+        PokemonDto expectedPokemon = PokemonDto.builder()
+                .id("123")
+                .nickname("My favorite")
+                .pokemonId("35")
+                .pokemonName("clefairy")
+                .pictureUrl("https://example.com/clefairy.png")
+                .weight(75)
+                .height(6)
+                .types(List.of("fairy"))
+                .build();
+        //WHEN
+        when(mockRepo.findById("123")).thenReturn(Optional.of(expectedPokemon));
+        PokemonDto actualPokemon = pokemonService.getFavoritePokemon("123");
+
+        //THEN
+        assertEquals(expectedPokemon, actualPokemon);
+        verify(mockRepo, times(1)).findById("123");
+    }
+
+    @Test
+    void getFavoritePokemon_shouldThrowException_whenNotExist() {
+        //GIVEN
+        when(mockRepo.findById("someId")).thenReturn(Optional.empty());
+
+        //WHEN
+        try {
+            pokemonService.getFavoritePokemon("someId");
+        //THEN
+            fail("Expected Exception not thrown, even though pokemon with id: someId, that does not exist.");
+        } catch (CollectionEntryNotFoundException e) {
+            var expectedMessage = "Favorite Pokemon with id: someId not found!";
+            assertEquals(expectedMessage, e.getMessage());
+        }
+    }
+
+    @Test
+    void deleteFavoritePokemon_shouldBeTrue_whenOneExist() {
+        //GIVEN
+        when(mockRepo.existsById("123")).thenReturn(true);
+
+        //WHEN
+        boolean actualResult = pokemonService.deleteFavoritePokemon("123");
+
+        //THEN
+        assertEquals(true, actualResult);
+        verify(mockRepo, times(1)).existsById("123");
+        verify(mockRepo, times(1)).deleteById("123");
+    }
+
+    @Test
+    void deleteFavoritePokemon_shouldBeFalse_whenNoneExist() {
+        //GIVEN
+        when(mockRepo.existsById("123")).thenReturn(false);
+
+        //WHEN
+        try {
+            pokemonService.deleteFavoritePokemon("123");
+        //THEN
+            fail("Expected Exception not thrown, even though pokemon with id: 123, that does not exist.");
+        } catch (CollectionEntryNotFoundException e) {
+            var expectedMessage = "Favorite Pokemon with id: 123 not found!";
+            assertEquals(expectedMessage, e.getMessage());
+            verify(mockRepo, times(1)).existsById("123");
+            verify(mockRepo, times(0)).deleteById("123");
+        }
     }
 }
