@@ -378,4 +378,75 @@ class ControllerTest {
                 .andExpect(MockMvcResultMatchers.status().isBadRequest())
                 .andExpect(MockMvcResultMatchers.content().string("Favorite Pokemon with id: 333 not found!"));
     }
+
+    @Test
+    void updateFavoritePokemon_shouldReturnUpdatedOne_whenOneExist() throws Exception {
+        //GIVEN
+        PokemonDto expectedPokemonDtoOne = PokemonDto.builder()
+                .id("123")
+                .nickname("My Super Starter")
+                .pokemonId("35")
+                .pokemonName("clefairy")
+                .pictureUrl("https://example.com/clefairy.png")
+                .weight(75)
+                .height(6)
+                .types(List.of("fairy"))
+                .build();
+
+        repo.save(expectedPokemonDtoOne);
+        //WHEN
+        mockMvc.perform(MockMvcRequestBuilders.put("/api/collection/123")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content("""
+                                {
+                                    "nickname": "My Regular Starter"
+                                }
+                                """))
+                //THEN
+                .andExpect(MockMvcResultMatchers.status().isOk())
+                .andExpect(MockMvcResultMatchers.content().json("""
+                        {
+                            "id": "123",
+                            "pokemonId": "35",
+                            "nickname": "My Regular Starter",
+                            "pokemonName": "clefairy",
+                            "pictureUrl": "https://example.com/clefairy.png",
+                            "height": 6,
+                            "weight": 75,
+                            "types": [
+                                "fairy"
+                            ]
+                        }
+                        """));
+    }
+
+    @Test
+    void updateFavoritePokemon_shouldReturnException_whenNotExist() throws Exception {
+        //GIVEN
+        PokemonDto expectedPokemonDtoOne = PokemonDto.builder()
+                .id("123")
+                .nickname("My Super Starter")
+                .pokemonId("35")
+                .pokemonName("clefairy")
+                .pictureUrl("https://example.com/clefairy.png")
+                .weight(75)
+                .height(6)
+                .types(List.of("fairy"))
+                .build();
+
+        repo.save(expectedPokemonDtoOne);
+        //WHEN
+        mockMvc.perform(MockMvcRequestBuilders.put("/api/collection/1234")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content("""
+                                {
+                                    "nickname": "My Regular Starter"
+                                }
+                                """))
+        //THEN
+                .andExpect(MockMvcResultMatchers.status().isBadRequest())
+                .andExpect(MockMvcResultMatchers.content().string("Favorite Pokemon with id: 1234 not found!"));
+
+        assertEquals(Optional.of(expectedPokemonDtoOne), repo.findById("123"));
+    }
 }
