@@ -38,7 +38,6 @@ class ControllerTest {
     private final MockRestServiceServer mockServer = MockRestServiceServer.bindTo(builder).build();
 
 
-
     @Test
     void getPokemon_shouldReturnPokemon_whenValidRequested() throws Exception {
 
@@ -261,5 +260,72 @@ class ControllerTest {
                 .andExpect(MockMvcResultMatchers.content().json("""
                           []
                         """));
+    }
+
+    @Test
+    void getFavoritePokemon_shouldReturnOne_whenTwoExist() throws Exception {
+        //GIVEN
+        PokemonDto expectedPokemonDtoOne = PokemonDto.builder()
+                .id("123")
+                .nickname("someNikname")
+                .pokemonId("35")
+                .pokemonName("clefairy")
+                .pictureUrl("https://example.com/clefairy.png")
+                .weight(75)
+                .height(6)
+                .types(List.of("fairy"))
+                .build();
+
+        PokemonDto expectedPokemonDtoTwo = PokemonDto.builder()
+                .id("333")
+                .nickname("someAnotherNikname")
+                .pokemonId("343")
+                .pokemonName("pikachu")
+                .pictureUrl("https://example.com/clefairy.png")
+                .weight(80)
+                .height(8)
+                .types(List.of("fairy", "whatEverElse"))
+                .build();
+        repo.saveAll(List.of(expectedPokemonDtoOne, expectedPokemonDtoTwo));
+
+        //WHEN
+        mockMvc.perform(MockMvcRequestBuilders.get("/api/collection/333"))
+                .andExpect(MockMvcResultMatchers.status().isOk())
+                .andExpect(MockMvcResultMatchers.content().json("""
+                        {
+                            "id": "333",
+                            "pokemonId": "343",
+                            "nickname": "someAnotherNikname",
+                            "pokemonName": "pikachu",
+                            "pictureUrl": "https://example.com/clefairy.png",
+                            "height": 8,
+                            "weight": 80,
+                            "types": [
+                               "fairy", "whatEverElse"
+                            ]
+                        }
+                        """));
+    }
+
+    @Test
+    void getFavoritePokemon_shouldReturnException_whenNotExist() throws Exception {
+        //GIVEN
+        PokemonDto expectedPokemonDtoOne = PokemonDto.builder()
+                .id("123")
+                .nickname("someNikname")
+                .pokemonId("35")
+                .pokemonName("clefairy")
+                .pictureUrl("https://example.com/clefairy.png")
+                .weight(75)
+                .height(6)
+                .types(List.of("fairy"))
+                .build();
+
+        repo.saveAll(List.of(expectedPokemonDtoOne));
+
+        //WHEN
+        mockMvc.perform(MockMvcRequestBuilders.get("/api/collection/333"))
+                .andExpect(MockMvcResultMatchers.status().isBadRequest())
+                .andExpect(MockMvcResultMatchers.content().string("Favorite Pokemon with id: 333 not found!"));
     }
 }
