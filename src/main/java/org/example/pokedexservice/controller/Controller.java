@@ -1,5 +1,6 @@
 package org.example.pokedexservice.controller;
 
+import jakarta.validation.Valid;
 import lombok.AllArgsConstructor;
 import org.example.pokedexservice.dto.FavoriteDto;
 import org.example.pokedexservice.dto.PokemonDto;
@@ -24,7 +25,7 @@ public class Controller {
     }
 
     @PostMapping("/collection")
-    public PokemonDto addFavorite(@RequestBody FavoriteDto favoriteDto){
+    public PokemonDto addFavorite(@RequestBody @Valid FavoriteDto favoriteDto){
         return pokemonService.addFavorite(favoriteDto);
     }
 
